@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
-import type { User } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "./lib/supabaseClient";
+import ClientForm from "./components/ClientForm";
 
 export default function App() {
 	const [email, setEmail] = useState("");
@@ -28,7 +28,6 @@ export default function App() {
 	};
 
 	const handleLogout = async () => {
-		// Ici, la méthode signOut est utilisée pour déconnecter l'utilisateur
 		const { error } = await supabase.auth.signOut();
 		if (error) {
 			setMessage(error.message);
@@ -39,17 +38,14 @@ export default function App() {
 	};
 
 	useEffect(() => {
-		//  Récupère l'utilisateur au chargement
 		const getUser = async () => {
-			const { data, error } = await supabase.auth.getUser();
+			const { data } = await supabase.auth.getUser();
 			if (data?.user) {
 				setUser(data.user);
 			}
 		};
 		getUser();
 
-		//  Écoute les changements d'authentification
-		// La méthode onAuthStateChange permet de réagir aux changements d'état de l'authentification, le listener renvoie un objet avec l'événement et la session actuelle.
 		const { data: listener } = supabase.auth.onAuthStateChange(
 			(event, session) => {
 				console.log("Changement de session:", event, session);
@@ -58,8 +54,6 @@ export default function App() {
 			}
 		);
 
-		// Nettoyage de l'écouteur lors du démontage du composant
-		// Cela permet de s'assurer que l'écouteur n'est plus actif lorsque le composant est démonté, évitant ainsi les fuites de mémoire.
 		return () => {
 			listener.subscription.unsubscribe();
 		};
@@ -68,10 +62,14 @@ export default function App() {
 	return (
 		<div style={{ padding: 40 }}>
 			<h1>🔐 Auth Supabase</h1>
+
 			{user ? (
 				<>
 					<p>Connecté en tant que : {user.email}</p>
 					<button onClick={handleLogout}>Déconnexion</button>
+
+					{/* ✅ Affichage du formulaire client */}
+					<ClientForm />
 				</>
 			) : (
 				<>
@@ -93,6 +91,7 @@ export default function App() {
 					</div>
 				</>
 			)}
+
 			<p>{message}</p>
 		</div>
 	);
